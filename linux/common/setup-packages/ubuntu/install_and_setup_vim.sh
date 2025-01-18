@@ -1,75 +1,84 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# This script installs Vim and configures a basic .vimrc with syntax highlighting 
+# and the settings described in the instructions. It also backs up any existing
+# ~/.vimrc by appending a timestamp.
 
-# Update package list
-sudo apt update
+# Backup existing .vimrc with timestamp
+TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+if [ -f ~/.vimrc ]; then
+    cp ~/.vimrc ~/.vimrc.$TIMESTAMP
+    echo "Existing ~/.vimrc backed up as ~/.vimrc.$TIMESTAMP"
+fi
+
+# Update package information (optional, but recommended)
+sudo apt-get update
 
 # Install Vim
-sudo apt install -y vim
+sudo apt-get install -y vim
 
-# Check if installation was successful
-if ! command -v vim &> /dev/null
-then
-    echo "Vim installation failed. Please check the error messages."
-    exit 1
-fi
-
-# Set Vim configuration file
-VIMRC=~/.vimrc
-BACKUP_VIMRC=~/.vimrc.backup.$(date +%Y%m%d%H%M%S)
-
-# Create backup mechanism
-if [ -f "$VIMRC" ]; then
-    echo "Existing .vimrc file found. Creating a backup at $BACKUP_VIMRC"
-    cp "$VIMRC" "$BACKUP_VIMRC"
-fi
-
-cat <<EOL > $VIMRC
+# Create (or overwrite) the .vimrc file in the user's home directory
+cat <<EOF > ~/.vimrc
 " Enable syntax highlighting
 syntax on
 
 " Show line numbers
-set number
+set nu
 
-" Enable auto-indentation
-set autoindent
-set smartindent
+" Auto indent
+set ai
 
-" Set indentation width
+" Highlight the current cursor line
+set cursorline
+
+" Background color setting for a light-themed terminal
+" If your terminal is dark-themed, consider using: set bg=dark
+set bg=light
+
+" Set the width for a <Tab> character
 set tabstop=4
+
+" Set the indentation width
 set shiftwidth=4
-set expandtab
 
-" Enable search highlighting
-set hlsearch
-
-" Incremental search
-set incsearch
-
-" Enable mouse support
+" Enable mouse support in all modes
 set mouse=a
 
-" Set color scheme
-colorscheme desert
+" Show the cursor position at the bottom-right
+set ruler
 
-" Disable backup files
-set nobackup
-set nowritebackup
-set noswapfile
+" Enable backspace in insert mode
+set backspace=2
 
-" Show status line
-set laststatus=2
+" Add 'r' to format options to continue comments automatically
+set formatoptions+=r
 
-" Set scroll offset
-set scrolloff=8
+" Keep 100 lines of command history
+set history=100
 
-" Enable autocomplete menu
-set wildmenu
+" Enable incremental search
+set incsearch
 
-" Enable file type detection
-filetype plugin on
+" Key mappings for automatic bracket insertion
+inoremap ( ()<Esc>i
+inoremap " ""<Esc>i
+inoremap ' ''<Esc>i
+inoremap [ []<Esc>i
+inoremap {<CR> {<CR>}<Esc>ko
+inoremap {{ {}<Esc>i
+
+" Convert tabs to spaces (expandtab), tabstop=4 determines how many spaces
+set expandtab
+
+" Enable indentation detection based on file type
 filetype indent on
-EOL
 
-# Completion message
-echo "Vim installation complete. Configuration has been set in $VIMRC."
-echo "If you need to restore the previous configuration, overwrite $VIMRC with $BACKUP_VIMRC."
+" Highlight line numbers
+hi LineNr cterm=bold ctermfg=DarkGrey ctermbg=NONE
+
+" Highlight the current cursor line number
+hi CursorLineNr cterm=bold ctermfg=Green ctermbg=NONE
+EOF
+
+echo "Vim installation and configuration completed."
+echo "Open a file with 'vim filename' to enjoy the new settings!"
