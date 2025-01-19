@@ -1,84 +1,78 @@
-#!/usr/bin/env bash
-#
-# This script installs Vim and configures a basic .vimrc with syntax highlighting 
-# and the settings described in the instructions. It also backs up any existing
-# ~/.vimrc by appending a timestamp.
+#!/bin/bash
 
-# Backup existing .vimrc with timestamp
-TIMESTAMP=$(date +'%Y%m%d%H%M%S')
-if [ -f ~/.vimrc ]; then
-    cp ~/.vimrc ~/.vimrc.$TIMESTAMP
-    echo "Existing ~/.vimrc backed up as ~/.vimrc.$TIMESTAMP"
-fi
+# Function to install required packages
+install_packages() {
+    echo "Installing required packages..."
+    sudo apt update && sudo apt install vim ack -y
+    echo "Package installation complete."
+}
 
-# Update package information (optional, but recommended)
-sudo apt-get update
+# Function to install awesome_vimrc
+install_awesome_vimrc() {
+    echo "Installing awesome_vimrc..."
+    git clone --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime
+    sh ~/.vim_runtime/install_awesome_vimrc.sh
 
-# Install Vim
-sudo apt-get install -y vim
+    echo "Checking for existing my_configs.vim..."
+    if [ -f ~/.vim_runtime/my_configs.vim ]; then
+        backup_file="~/.vim_runtime/my_configs_$(date +%Y%m%d%H%M%S).vim"
+        mv ~/.vim_runtime/my_configs.vim "$backup_file"
+        echo "Existing my_configs.vim backed up to $backup_file."
+    fi
 
-# Create (or overwrite) the .vimrc file in the user's home directory
-cat <<EOF > ~/.vimrc
-" Enable syntax highlighting
-syntax on
+    echo "Adding custom configurations to my_configs.vim..."
+    echo "set number" > ~/.vim_runtime/my_configs.vim
 
-" Show line numbers
-set nu
+    echo "Installation of awesome_vimrc complete."
+}
 
-" Auto indent
-set ai
+# Function to uninstall awesome_vimrc
+uninstall_awesome_vimrc() {
+    echo "Uninstalling awesome_vimrc..."
+    if [ -d "~/.vim_runtime" ]; then
+        rm -rf ~/.vim_runtime
+        echo "Removed ~/.vim_runtime."
+    else
+        echo "~/.vim_runtime does not exist."
+    fi
 
-" Highlight the current cursor line
-set cursorline
+    if grep -q ".vim_runtime" ~/.vimrc; then
+        sed -i '/.vim_runtime/d' ~/.vimrc
+        echo "Removed references to .vim_runtime in ~/.vimrc."
+    else
+        echo "No references to .vim_runtime found in ~/.vimrc."
+    fi
 
-" Background color setting for a light-themed terminal
-" If your terminal is dark-themed, consider using: set bg=dark
-set bg=light
+    echo "Uninstallation complete."
+}
 
-" Set the width for a <Tab> character
-set tabstop=4
+# Main menu
+while true; do
+    echo "Please select an option:"
+    echo "1. Install required packages"
+    echo "2. Install awesome_vimrc"
+    echo "3. Uninstall awesome_vimrc"
+    echo "4. Exit"
+    read -rp "Enter your choice [1-4]: " choice
 
-" Set the indentation width
-set shiftwidth=4
+    case $choice in
+        1)
+            install_packages
+            ;;
+        2)
+            install_awesome_vimrc
+            ;;
+        3)
+            uninstall_awesome_vimrc
+            ;;
+        4)
+            echo "Goodbye!"
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice. Please enter 1, 2, 3, or 4."
+            ;;
+    esac
+    echo
+done
 
-" Enable mouse support in all modes
-set mouse=a
-
-" Show the cursor position at the bottom-right
-set ruler
-
-" Enable backspace in insert mode
-set backspace=2
-
-" Add 'r' to format options to continue comments automatically
-set formatoptions+=r
-
-" Keep 100 lines of command history
-set history=100
-
-" Enable incremental search
-set incsearch
-
-" Key mappings for automatic bracket insertion
-inoremap ( ()<Esc>i
-inoremap " ""<Esc>i
-inoremap ' ''<Esc>i
-inoremap [ []<Esc>i
-inoremap {<CR> {<CR>}<Esc>ko
-inoremap {{ {}<Esc>i
-
-" Convert tabs to spaces (expandtab), tabstop=4 determines how many spaces
-set expandtab
-
-" Enable indentation detection based on file type
-filetype indent on
-
-" Highlight line numbers
-hi LineNr cterm=bold ctermfg=DarkGrey ctermbg=NONE
-
-" Highlight the current cursor line number
-hi CursorLineNr cterm=bold ctermfg=Green ctermbg=NONE
-EOF
-
-echo "Vim installation and configuration completed."
-echo "Open a file with 'vim filename' to enjoy the new settings!"
