@@ -99,7 +99,27 @@ configure_kernel_cross_compile() {
 # Customize kernel using menuconfig
 customize_menuconfig() {
   echo "Launching menuconfig interface..."
-  make menuconfig
+  echo "Select build type:"
+  echo "1. Native build"
+  echo "2. Cross-compile (64-bit kernel)"
+  echo "3. Cross-compile (32-bit kernel)"
+  echo -n "Enter your choice: "
+  read menuconfig_choice
+
+  case $menuconfig_choice in
+    1)
+      make menuconfig
+      ;;
+    2)
+      make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
+      ;;
+    3)
+      make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+      ;;
+    *)
+      echo "Invalid option. Returning to menu."
+      ;;
+  esac
   echo "Configuration complete."
 }
 
