@@ -39,8 +39,13 @@ $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+    echo "Adding current user to docker group..."
+    sudo usermod -aG docker $USER
+
     echo "Verifying Docker installation..."
     sudo docker run hello-world
+    
+    echo "Docker installed successfully. Please log out and back in for group changes to take effect."
     ;;
 3)
     echo "Installing Docker Engine (using convenience script)..."
@@ -48,8 +53,13 @@ $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
     curl -fsSL https://get.docker.com -o get-docker.sh
     sudo sh get-docker.sh
 
+    echo "Adding current user to docker group..."
+    sudo usermod -aG docker $USER
+
     echo "Verifying Docker installation..."
     sudo docker run hello-world
+    
+    echo "Docker installed successfully. Please log out and back in for group changes to take effect."
     ;;
 4)
     echo "Uninstalling Docker Engine..."
